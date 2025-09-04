@@ -1,6 +1,6 @@
-# 🚀 Microservice MCP GraphQL Backend
+# 🚀 Microservice MCP GraphQL Base
 
-Dự án backend được refactor từ kiến trúc monolithic sang kiến trúc microservice với GraphQL và chuẩn MCP (Model Context Protocol). Dự án này cung cấp một nền tảng mạnh mẽ cho việc xây dựng các ứng dụng AI/ML với khả năng mở rộng cao.
+Dự án này xây dựng theo mô hình microservices, kết hợp GraphQL ở cả tầng Gateway và tại các microservice (đơn cử như microservice AI). Đồng thời, dự án hỗ trợ [MCP (Model Context Protocol)](https://github.com/modelcontextprotocol) – cho phép giao tiếp với các service hoặc tool bên ngoài, tích hợp AI/ML và các tác vụ phức tạp.
 
 ## 📋 Mục lục
 
