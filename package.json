@@ -1,0 +1,39 @@
+{
+  "name": "aiva-microservices",
+  "version": "1.0.0",
+  "description": "AIVA Microservices Architecture with GraphQL and MCP",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "libs/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "start": "npm run start --workspaces",
+    "dev": "npm run dev --workspaces",
+    "test": "npm run test --workspaces",
+    "lint": "npm run lint --workspaces",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "services:start": "concurrently \"npm run dev -w apps/api-gateway\" \"npm run dev -w apps/users-service\" \"npm run dev -w apps/auth-service\" \"npm run dev -w apps/ai-service\" \"npm run dev -w apps/media-service\" \"npm run dev -w apps/notification-service\" \"npm run dev -w apps/orchestrator\"",
+    "db:migrate": "npm run db:migrate --workspaces",
+    "db:seed": "npm run db:seed --workspaces"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "concurrently": "^8.2.2",
+    "eslint": "^8.54.0",
+    "nodemon": "^3.0.2",
+    "typescript": "^5.3.2"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

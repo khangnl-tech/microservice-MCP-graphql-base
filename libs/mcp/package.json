@@ -1,0 +1,24 @@
+{
+  "name": "@libs/mcp",
+  "version": "1.0.0",
+  "description": "Model Context Protocol (MCP) implementation for AIVA microservices",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@libs/common": "^1.0.0",
+    "ws": "^8.14.2",
+    "uuid": "^9.0.1",
+    "joi": "^17.11.0"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.5.8",
+    "@types/uuid": "^9.0.7",
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.2"
+  }
+}
