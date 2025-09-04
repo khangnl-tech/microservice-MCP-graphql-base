@@ -1,6 +1,6 @@
-# 🏗️ Microservice MCP GraphQL Base
+# 🚀 Microservice MCP GraphQL Base
 
-Kiến trúc microservice toàn diện được xây dựng với GraphQL federation, chuẩn Model Context Protocol (MCP), và tích hợp AI/ML mở rộng.
+Dự án này xây dựng theo mô hình microservices, kết hợp GraphQL ở cả tầng Gateway và tại các microservice (đơn cử như microservice AI). Đồng thời, dự án hỗ trợ [MCP (Model Context Protocol)](https://github.com/modelcontextprotocol) – cho phép giao tiếp với các service hoặc tool bên ngoài, tích hợp AI/ML và các tác vụ phức tạp.
 
 ## 📋 Mục lục
 
