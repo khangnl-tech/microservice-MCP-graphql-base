@@ -7,6 +7,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
+import path from 'path';
 
 import { config } from '../shared/config/index.js';
 import logger from '../shared/utils/logger.js';
@@ -330,6 +331,16 @@ class Gateway {
         logger.error('Failed to get services:', error);
         res.status(500).json({ error: error.message });
       }
+    });
+
+    // GraphQL Playground
+    this.app.get('/playground', (req, res) => {
+      res.sendFile(path.join(process.cwd(), 'src/gateway/graphql-playground.html'));
+    });
+
+    // Redirect root to playground
+    this.app.get('/', (req, res) => {
+      res.redirect('/playground');
     });
 
     // GraphQL endpoint
