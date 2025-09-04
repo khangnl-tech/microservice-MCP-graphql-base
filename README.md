@@ -86,6 +86,8 @@ Dự án này xây dựng theo mô hình microservices, kết hợp GraphQL ở 
       - Gateway GraphQL: http://localhost:4000/graphql  
       - AI GraphQL: http://localhost:5001/graphql  
       - Các service khác: tùy theo endpoints.  
+      - Mỗi microservice (AI, Media, Auth, Data) có database riêng (mongo container) theo docker-compose.yml.
+      - Tham khảo biến môi trường MONGO_URI cho từng service để tùy chỉnh DB nếu cần.
 
 7. **Kiến trúc MCP**  
    - Cấu trúc code có thể bổ sung 1 “server MCP” trong AI, cho phép `tool` như “callOpenAI”, “analyzeImage”…  

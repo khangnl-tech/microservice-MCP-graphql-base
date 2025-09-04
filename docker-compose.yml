@@ -26,6 +26,7 @@ services:
     environment:
       - AI_PORT=5001
       - NODE_ENV=development
+      - MONGO_URI=mongodb://ai_db:27017/aidb
     networks:
       - microservice_net
 
@@ -38,6 +39,7 @@ services:
     environment:
       - MEDIA_PORT=5002
       - NODE_ENV=development
+      - MONGO_URI=mongodb://media_db:27017/mediadb
     networks:
       - microservice_net
 
@@ -50,6 +52,7 @@ services:
     environment:
       - AUTH_PORT=5003
       - NODE_ENV=development
+      - MONGO_URI=mongodb://auth_db:27017/authdb
     networks:
       - microservice_net
 
@@ -62,6 +65,39 @@ services:
     environment:
       - DATA_PORT=5004
       - NODE_ENV=development
+      - MONGO_URI=mongodb://data_db:27017/datadb
+    networks:
+      - microservice_net
+
+  auth_db:
+    image: mongo:4.4
+    container_name: auth_db
+    ports:
+      - "27017:27017"
+    networks:
+      - microservice_net
+
+  data_db:
+    image: mongo:4.4
+    container_name: data_db
+    ports:
+      - "27018:27017"
+    networks:
+      - microservice_net
+
+  ai_db:
+    image: mongo:4.4
+    container_name: ai_db
+    ports:
+      - "27019:27017"
+    networks:
+      - microservice_net
+
+  media_db:
+    image: mongo:4.4
+    container_name: media_db
+    ports:
+      - "27020:27017"
     networks:
       - microservice_net
 
