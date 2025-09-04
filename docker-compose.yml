@@ -1,0 +1,214 @@
+version: '3.8'
+
+services:
+  # MongoDB
+  mongodb:
+    image: mongo:7.0
+    container_name: mongodb
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: microservice_db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - microservice_network
+
+  # Redis
+  redis:
+    image: redis:7.2-alpine
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - microservice_network
+
+  # Qdrant Vector Database
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant
+    restart: always
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks:
+      - microservice_network
+
+  # API Gateway
+  gateway:
+    build:
+      context: ./services/gateway
+      dockerfile: Dockerfile
+    container_name: gateway
+    restart: always
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: development
+      PORT: 4000
+      MONGODB_URI: mongodb://admin:password@mongodb:27017/microservice_db?authSource=admin
+      REDIS_URL: redis://redis:6379
+      AUTH_SERVICE_URL: http://auth:4001
+      AI_SERVICE_URL: http://ai:4002
+      MEDIA_SERVICE_URL: http://media:4003
+      USER_SERVICE_URL: http://user:4004
+      NOTIFICATION_SERVICE_URL: http://notification:4005
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - microservice_network
+
+  # Auth Service
+  auth:
+    build:
+      context: ./services/auth
+      dockerfile: Dockerfile
+    container_name: auth
+    restart: always
+    ports:
+      - "4001:4001"
+    environment:
+      NODE_ENV: development
+      PORT: 4001
+      MONGODB_URI: mongodb://admin:password@mongodb:27017/microservice_db?authSource=admin
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: your-super-secret-jwt-key
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - microservice_network
+
+  # AI Service
+  ai:
+    build:
+      context: ./services/ai
+      dockerfile: Dockerfile
+    container_name: ai
+    restart: always
+    ports:
+      - "4002:4002"
+    environment:
+      NODE_ENV: development
+      PORT: 4002
+      MONGODB_URI: mongodb://admin:password@mongodb:27017/microservice_db?authSource=admin
+      REDIS_URL: redis://redis:6379
+      QDRANT_URL: http://qdrant:6333
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      GOOGLE_AI_API_KEY: ${GOOGLE_AI_API_KEY}
+      HUGGINGFACE_API_KEY: ${HUGGINGFACE_API_KEY}
+      ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY}
+      TOGETHER_AI_API_KEY: ${TOGETHER_AI_API_KEY}
+      GOOGLE_CLOUD_CREDENTIALS: ${GOOGLE_CLOUD_CREDENTIALS}
+    depends_on:
+      - mongodb
+      - redis
+      - qdrant
+    networks:
+      - microservice_network
+
+  # Media Service
+  media:
+    build:
+      context: ./services/media
+      dockerfile: Dockerfile
+    container_name: media
+    restart: always
+    ports:
+      - "4003:4003"
+    environment:
+      NODE_ENV: development
+      PORT: 4003
+      MONGODB_URI: mongodb://admin:password@mongodb:27017/microservice_db?authSource=admin
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - microservice_network
+
+  # User Service
+  user:
+    build:
+      context: ./services/user
+      dockerfile: Dockerfile
+    container_name: user
+    restart: always
+    ports:
+      - "4004:4004"
+    environment:
+      NODE_ENV: development
+      PORT: 4004
+      MONGODB_URI: mongodb://admin:password@mongodb:27017/microservice_db?authSource=admin
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - microservice_network
+
+  # Notification Service
+  notification:
+    build:
+      context: ./services/notification
+      dockerfile: Dockerfile
+    container_name: notification
+    restart: always
+    ports:
+      - "4005:4005"
+    environment:
+      NODE_ENV: development
+      PORT: 4005
+      MONGODB_URI: mongodb://admin:password@mongodb:27017/microservice_db?authSource=admin
+      REDIS_URL: redis://redis:6379
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - microservice_network
+
+  # Service Orchestrator
+  orchestrator:
+    build:
+      context: ./services/orchestrator
+      dockerfile: Dockerfile
+    container_name: orchestrator
+    restart: always
+    ports:
+      - "4006:4006"
+    environment:
+      NODE_ENV: development
+      PORT: 4006
+      REDIS_URL: redis://redis:6379
+      GATEWAY_SERVICE_URL: http://gateway:4000
+      AUTH_SERVICE_URL: http://auth:4001
+      AI_SERVICE_URL: http://ai:4002
+      MEDIA_SERVICE_URL: http://media:4003
+      USER_SERVICE_URL: http://user:4004
+      NOTIFICATION_SERVICE_URL: http://notification:4005
+    depends_on:
+      - redis
+    networks:
+      - microservice_network
+
+volumes:
+  mongodb_data:
+  redis_data:
+  qdrant_data:
+
+networks:
+  microservice_network:
+    driver: bridge
