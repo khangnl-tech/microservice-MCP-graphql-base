@@ -99,10 +99,4 @@ Dự án này được xây dựng theo mô hình microservices, kết hợp Gra
    - Áp dụng AAA (Authentication, Authorization, Auditing).  
 
 ## Kết luận
-
-- Cấu trúc microservices + GraphQL + MCP cho phép bạn phát triển linh hoạt, tách biệt logic AI, media, auth, data.  
-- Gateway GraphQL tập trung, giúp client chỉ cần endpoint duy nhất.  
 - Mỗi microservice có thể phát triển độc lập, ngôn ngữ tùy chọn, miễn đáp ứng giao thức giao tiếp (REST, GraphQL, hoặc MCP).  
-- Đây là nền tảng mạnh mẽ cho dự án lớn, đặc biệt khi AI/ML và media processing phức tạp.
-
-Chúc bạn thành công với dự án microservice GraphQL, sẵn sàng tích hợp các tính năng AI, media, auth, data, và nhiều hơn nữa!
