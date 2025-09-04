@@ -361,11 +361,11 @@ View registered services:
 
 ### Tổng quan MCP trong Dự án
 
-Model Context Protocol (MCP) là chuẩn giao tiếp cho phép các AI systems tương tác với external tools và resources một cách standardized. Trong dự án này, MCP được implement để:
+Model Context Protocol (MCP) là chuẩn giao tiếp cho phép các AI systems tương tác với external tools và resources một cách standardized. MCP được implement với các mục tiêu:
 
 1. **Standardize AI Tool Integration**: Tất cả AI tools được expose qua MCP interface
-2. **Enable Cross-Service Communication**: Services có thể gọi tools từ services khác
-3. **Provide Unified Tool Access**: Client applications có thể access tất cả tools qua single interface
+2. **Enable Cross-Service Communication**: Services gọi tools từ services khác
+3. **Provide Unified Tool Access**: Client applications access tất cả tools qua single interface
 4. **Support Tool Composition**: Combine multiple tools để tạo complex workflows
 
 ### Kiến trúc MCP trong Hệ thống
@@ -1214,7 +1214,7 @@ const stats = await YourEntity.aggregate([
 ]);
 ```
 
-Với hướng dẫn này, bạn có thể dễ dàng tạo thêm các services mới và integrate chúng vào kiến trúc microservice MCP GraphQL của dự án.
+Hướng dẫn này cung cấp framework để tạo thêm các services mới và integrate chúng vào kiến trúc microservice MCP GraphQL.
 
 ## 📊 Monitoring & Logging
 
