@@ -1,0 +1,188 @@
+version: '3.8'
+
+services:
+  # Infrastructure Services
+  mongodb:
+    image: mongo:7.0
+    container_name: mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - microservice-network
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - microservice-network
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant
+    restart: unless-stopped
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks:
+      - microservice-network
+
+  # Service Discovery
+  consul:
+    image: consul:1.16
+    container_name: consul
+    restart: unless-stopped
+    ports:
+      - "8500:8500"
+      - "8600:8600/udp"
+    command: agent -server -ui -node=server-1 -bootstrap-expect=1 -client=0.0.0.0
+    networks:
+      - microservice-network
+
+  # API Gateway
+  gateway:
+    build:
+      context: .
+      dockerfile: src/gateway/Dockerfile
+    container_name: gateway
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=development
+      - PORT=4000
+      - MONGODB_URI=mongodb://admin:password@mongodb:27017/microservice_db?authSource=admin
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=your-jwt-secret-key
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
+    depends_on:
+      - mongodb
+      - redis
+      - consul
+    networks:
+      - microservice-network
+
+  # Authentication Service
+  auth-service:
+    build:
+      context: .
+      dockerfile: src/services/auth/Dockerfile
+    container_name: auth-service
+    restart: unless-stopped
+    ports:
+      - "4001:4001"
+    environment:
+      - NODE_ENV=development
+      - PORT=4001
+      - MONGODB_URI=mongodb://admin:password@mongodb:27017/auth_db?authSource=admin
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=your-jwt-secret-key
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
+    depends_on:
+      - mongodb
+      - redis
+      - consul
+    networks:
+      - microservice-network
+
+  # AI Service
+  ai-service:
+    build:
+      context: .
+      dockerfile: src/services/ai/Dockerfile
+    container_name: ai-service
+    restart: unless-stopped
+    ports:
+      - "4002:4002"
+    environment:
+      - NODE_ENV=development
+      - PORT=4002
+      - MONGODB_URI=mongodb://admin:password@mongodb:27017/ai_db?authSource=admin
+      - REDIS_URL=redis://redis:6379
+      - QDRANT_URL=http://qdrant:6333
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GOOGLE_AI_API_KEY=${GOOGLE_AI_API_KEY}
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+      - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
+      - TOGETHER_API_KEY=${TOGETHER_API_KEY}
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
+    depends_on:
+      - mongodb
+      - redis
+      - qdrant
+      - consul
+    networks:
+      - microservice-network
+
+  # Media Processing Service
+  media-service:
+    build:
+      context: .
+      dockerfile: src/services/media/Dockerfile
+    container_name: media-service
+    restart: unless-stopped
+    ports:
+      - "4003:4003"
+    environment:
+      - NODE_ENV=development
+      - PORT=4003
+      - MONGODB_URI=mongodb://admin:password@mongodb:27017/media_db?authSource=admin
+      - REDIS_URL=redis://redis:6379
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
+    depends_on:
+      - mongodb
+      - redis
+      - consul
+    volumes:
+      - media_uploads:/app/uploads
+    networks:
+      - microservice-network
+
+  # Data Service
+  data-service:
+    build:
+      context: .
+      dockerfile: src/services/data/Dockerfile
+    container_name: data-service
+    restart: unless-stopped
+    ports:
+      - "4004:4004"
+    environment:
+      - NODE_ENV=development
+      - PORT=4004
+      - MONGODB_URI=mongodb://admin:password@mongodb:27017/data_db?authSource=admin
+      - REDIS_URL=redis://redis:6379
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
+    depends_on:
+      - mongodb
+      - redis
+      - consul
+    networks:
+      - microservice-network
+
+volumes:
+  mongodb_data:
+  redis_data:
+  qdrant_data:
+  media_uploads:
+
+networks:
+  microservice-network:
+    driver: bridge
