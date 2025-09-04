@@ -1,0 +1,70 @@
+version: '3.9'
+services:
+  gateway:
+    build: ./gateway
+    container_name: gateway_service
+    command: ["npm", "start"]
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - NODE_ENV=development
+    depends_on:
+      - ai
+      - media
+      - auth
+      - data
+    networks:
+      - microservice_net
+
+  ai:
+    build: ./microservices/ai
+    container_name: ai_service
+    command: ["npm", "start"]
+    ports:
+      - "5001:5001"
+    environment:
+      - AI_PORT=5001
+      - NODE_ENV=development
+    networks:
+      - microservice_net
+
+  media:
+    build: ./microservices/media
+    container_name: media_service
+    command: ["npm", "start"]
+    ports:
+      - "5002:5002"
+    environment:
+      - MEDIA_PORT=5002
+      - NODE_ENV=development
+    networks:
+      - microservice_net
+
+  auth:
+    build: ./microservices/auth
+    container_name: auth_service
+    command: ["npm", "start"]
+    ports:
+      - "5003:5003"
+    environment:
+      - AUTH_PORT=5003
+      - NODE_ENV=development
+    networks:
+      - microservice_net
+
+  data:
+    build: ./microservices/data
+    container_name: data_service
+    command: ["npm", "start"]
+    ports:
+      - "5004:5004"
+    environment:
+      - DATA_PORT=5004
+      - NODE_ENV=development
+    networks:
+      - microservice_net
+
+networks:
+  microservice_net:
+    driver: bridge

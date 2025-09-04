@@ -1,0 +1,15 @@
+{
+  "name": "microservice-mcp-graphql-base",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "gateway",
+    "microservices/*"
+  ],
+  "scripts": {
+    "start": "echo 'Root script placeholder for monorepo. Use individual microservice scripts.'"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1"
+  }
+}

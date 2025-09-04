@@ -1,0 +1,16 @@
+{
+  "name": "microservice-media",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "pdf-parse": "^1.1.1",
+    "sharp": "^0.32.3",
+    "jimp": "^0.22.10",
+    "fluent-ffmpeg": "^2.1.2"
+  }
+}
