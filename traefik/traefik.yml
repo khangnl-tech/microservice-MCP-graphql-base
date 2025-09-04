@@ -1,0 +1,35 @@
+## Static configuration
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+
+## Entrypoints configuration
+entryPoints:
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entrypoint:
+          to: websecure
+          scheme: https
+  websecure:
+    address: ":443"
+
+## API and dashboard configuration
+api:
+  dashboard: true
+  insecure: true
+
+## Provider configuration
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+    network: microservice_network
+
+## Log configuration
+log:
+  level: INFO
+
+## Access logs
+accessLog: {}

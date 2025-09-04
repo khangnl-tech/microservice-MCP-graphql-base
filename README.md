@@ -27,6 +27,11 @@ Dự án này xây dựng theo mô hình microservices, kết hợp GraphQL ở 
 └─────────────────────────┬───────────────────────────────────────┘
                           │
                     ┌─────▼─────┐
+                    │ Traefik   │ ← Reverse Proxy & Load Balancer
+                    │ (Port 80) │
+                    └─────┬─────┘
+                          │
+                    ┌─────▼─────┐
                     │ API Gateway│ ← GraphQL + REST API
                     │ (Port 4000)│
                     └─────┬─────┘
@@ -56,6 +61,18 @@ Dự án này xây dựng theo mô hình microservices, kết hợp GraphQL ở 
 │Service │ │ Service      │ │ Components  │
 │4004    │ │ 4005         │ │             │
 └────────┘ └──────────────┘ └─────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│                    Shared Utilities Layer                       │
+├─────────────────────────────────────────────────────────────────┤
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────┐ │
+│  │   Config    │  │ Middleware  │  │      Utilities          │ │
+│  │             │  │             │  │                         │ │
+│  │ • Database  │  │ • Error     │  │ • Logger                │ │
+│  │ • Redis     │  │   Handler   │  │ • Validation            │ │
+│  │ • Constants │  │ • Auth      │  │ • Response Helpers      │ │
+│  └─────────────┘  └─────────────┘  └─────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ### Microservices Architecture
@@ -63,6 +80,9 @@ Dự án này xây dựng theo mô hình microservices, kết hợp GraphQL ở 
 #### 1. **API Gateway** (Port 4000)
 - **Chức năng**: Entry point chính, routing, GraphQL resolver
 - **Công nghệ**: Express.js, Apollo Server, GraphQL
+- **Database**: `gateway_db` (MongoDB:27017, Redis:6379)
+- **Domain**: `gateway.localhost`
+- **Shared Components**: Error handling, logging, constants
 - **Đặc điểm**: 
   - GraphQL schema unification
   - Request routing và load balancing
@@ -71,6 +91,9 @@ Dự án này xây dựng theo mô hình microservices, kết hợp GraphQL ở 
 
 #### 2. **Service Orchestrator** (Port 4006) ⭐ **NEW**
 - **Chức năng**: Quản lý và điều phối tất cả microservices
+- **Database**: Shared Redis với Gateway
+- **Domain**: `orchestrator.localhost`
+- **Shared Components**: Health monitoring, metrics collection
 - **Components**:
   - **Service Registry**: Đăng ký và discovery services
   - **Load Balancer**: Phân phối tải giữa instances
@@ -82,6 +105,9 @@ Dự án này xây dựng theo mô hình microservices, kết hợp GraphQL ở 
 #### 3. **Auth Service** (Port 4001)
 - **Chức năng**: Xác thực, phân quyền, quản lý user
 - **Công nghệ**: JWT, bcrypt, Redis session
+- **Database**: `auth_db` (MongoDB:27018, Redis:6380)
+- **Domain**: `auth.localhost`
+- **Shared Components**: Database config, error handling, validation
 - **Features**: 
   - JWT token management
   - Role-based access control (RBAC)
@@ -91,6 +117,9 @@ Dự án này xây dựng theo mô hình microservices, kết hợp GraphQL ở 
 #### 4. **AI Service** (Port 4002) 🧠 **CORE**
 - **Chức năng**: Xử lý AI/ML với MCP protocol
 - **Công nghệ**: OpenAI, Google AI, HuggingFace, Qdrant
+- **Database**: `ai_db` (MongoDB:27019, Redis:6381)
+- **Domain**: `ai.localhost`
+- **Shared Components**: MCP constants, database config, logging
 - **MCP Protocol**: 
   - Tool execution
   - Resource management
@@ -100,6 +129,9 @@ Dự án này xây dựng theo mô hình microservices, kết hợp GraphQL ở 
 #### 5. **Media Service** (Port 4003)
 - **Chức năng**: Xử lý file, media conversion
 - **Công nghệ**: Sharp, FFmpeg, PDF-parse
+- **Database**: `media_db` (MongoDB:27020, Redis:6382)
+- **Domain**: `media.localhost`
+- **Shared Components**: File upload config, error handling, validation
 - **Features**:
   - Image processing (resize, crop, filter)
   - Video processing (transcode, extract frames)
@@ -108,6 +140,9 @@ Dự án này xây dựng theo mô hình microservices, kết hợp GraphQL ở 
 
 #### 6. **User Service** (Port 4004)
 - **Chức năng**: Quản lý user profiles, preferences
+- **Database**: `user_db` (MongoDB:27021, Redis:6383)
+- **Domain**: `user.localhost`
+- **Shared Components**: User models, validation, response helpers
 - **Features**:
   - User CRUD operations
   - Profile management
@@ -117,30 +152,102 @@ Dự án này xây dựng theo mô hình microservices, kết hợp GraphQL ở 
 #### 7. **Notification Service** (Port 4005)
 - **Chức năng**: Email, push notifications, alerts
 - **Công nghệ**: Nodemailer, Socket.IO
+- **Database**: `notification_db` (MongoDB:27022, Redis:6384)
+- **Domain**: `notification.localhost`
+- **Shared Components**: Email config, error handling, logging
 - **Features**:
   - Email templates
   - Push notifications
   - Real-time alerts
   - Notification preferences
 
+### Shared Utilities Layer 🆕
+
+#### **Cấu trúc thư mục shared:**
+```
+shared/
+├── 📁 config/           # Database, Redis configurations
+├── 📁 middleware/       # Error handling, auth middleware
+├── 📁 utils/            # Logging, validation utilities
+├── 📁 constants/        # Common constants & enums
+├── 📁 models/           # Shared data models
+├── 📁 types/            # TypeScript type definitions
+└── index.js             # Main export file
+```
+
+#### **Shared Components:**
+
+1. **Database Config** (`shared/config/`)
+   - MongoDB connection với pooling và retry logic
+   - Redis connection với reconnection strategy
+   - Health monitoring và error handling
+
+2. **Middleware** (`shared/middleware/`)
+   - Error handler chung với detailed logging
+   - Async wrapper cho route handlers
+   - Not found handler
+
+3. **Utilities** (`shared/utils/`)
+   - Logger factory với file rotation
+   - Request logging middleware
+   - Performance monitoring
+
+4. **Constants** (`shared/constants/`)
+   - HTTP status codes
+   - Service ports và database names
+   - JWT configuration
+   - MCP protocol constants
+
+5. **Helpers** (`shared/index.js`)
+   - Response helpers (success, error, paginated)
+   - Validation helpers (email, password, ObjectId)
+   - Utility functions (random string, format bytes, retry logic)
+
+#### **Cách sử dụng Shared Components:**
+
+```javascript
+// Trong service
+const { 
+  connectDB, 
+  errorHandler, 
+  createLogger, 
+  HTTP_STATUS,
+  responseHelpers 
+} = require('../../shared');
+
+// Sử dụng database config
+await connectDB(MONGODB_URI, 'Media Service');
+
+// Sử dụng error handler
+app.use(errorHandler);
+
+// Sử dụng logger
+const logger = createLogger('Media Service');
+
+// Sử dụng constants
+res.status(HTTP_STATUS.CREATED);
+
+// Sử dụng response helpers
+responseHelpers.success(res, data, 'File uploaded successfully');
+```
+
 ### Database & Infrastructure
 
-#### **MongoDB** (Port 27017)
-- **Chức năng**: Primary database
-- **Collections**: Users, AI_Requests, Media_Files, Notifications
-- **Features**: 
-  - Document-based storage
-  - Indexing và aggregation
-  - Replica sets (production)
-  - Sharding support
+#### **MongoDB Instances** (Mỗi service có database riêng)
+- **Gateway**: `gateway_db` (Port 27017)
+- **Auth**: `auth_db` (Port 27018)
+- **AI**: `ai_db` (Port 27019)
+- **Media**: `media_db` (Port 27020)
+- **User**: `user_db` (Port 27021)
+- **Notification**: `notification_db` (Port 27022)
 
-#### **Redis** (Port 6379)
-- **Chức năng**: Cache, session storage, pub/sub
-- **Features**:
-  - Session management
-  - API response caching
-  - Rate limiting
-  - Real-time communication
+#### **Redis Instances** (Mỗi service có Redis riêng)
+- **Gateway**: Redis (Port 6379)
+- **Auth**: Redis (Port 6380)
+- **AI**: Redis (Port 6381)
+- **Media**: Redis (Port 6382)
+- **User**: Redis (Port 6383)
+- **Notification**: Redis (Port 6384)
 
 #### **Qdrant Vector Database** (Port 6333)
 - **Chức năng**: Vector storage cho AI embeddings
@@ -149,6 +256,18 @@ Dự án này xây dựng theo mô hình microservices, kết hợp GraphQL ở 
   - `images`: Image embeddings (512 dimensions)
   - `audio`: Audio embeddings (1024 dimensions)
   - `code`: Code embeddings (768 dimensions)
+
+#### **Traefik Reverse Proxy** (Port 80, 8080)
+- **Chức năng**: Load balancing, SSL termination, domain routing
+- **Dashboard**: http://localhost:8080
+- **Domain Routing**:
+  - `gateway.localhost` → Gateway Service
+  - `auth.localhost` → Auth Service
+  - `ai.localhost` → AI Service
+  - `media.localhost` → Media Service
+  - `user.localhost` → User Service
+  - `notification.localhost` → Notification Service
+  - `orchestrator.localhost` → Orchestrator Service
 
 ### Communication Patterns
 
@@ -161,6 +280,11 @@ Dự án này xây dựng theo mô hình microservices, kết hợp GraphQL ở 
 - **Socket.IO**: Real-time updates
 - **Redis Pub/Sub**: Event-driven communication
 - **Message Queues**: Background job processing
+
+#### **Domain-based Routing**
+- Mỗi service có thể được truy cập trực tiếp qua domain riêng
+- Traefik tự động route request dựa trên Host header
+- Load balancing và health checking tự động
 
 ## 🤖 MCP Protocol Architecture
 
@@ -953,17 +1077,19 @@ cd microservice-MCP-graphql
 
 ### 2. **Cài đặt dependencies**
 ```bash
-# Cài đặt dependencies cho tất cả services
-npm install
+# Cài đặt tất cả dependencies cho tất cả services và shared utilities
+npm run install:all
 
 # Hoặc cài đặt từng service riêng lẻ
-cd services/gateway && npm install
+cd shared && npm install
+cd ../services/gateway && npm install
 cd ../auth && npm install
 cd ../ai && npm install
 cd ../media && npm install
 cd ../user && npm install
 cd ../notification && npm install
 cd ../orchestrator && npm install
+cd ../..
 ```
 
 ### 3. **Cấu hình môi trường**
@@ -975,20 +1101,26 @@ cp env.example .env
 nano .env
 ```
 
-### 4. **Chạy với Docker Compose**
+### 4. **Chạy với Docker Compose (Khuyến nghị)**
 ```bash
-# Khởi động tất cả services
-docker-compose up -d
+# Khởi động tất cả services với database riêng biệt
+npm run docker:up
 
 # Xem logs
-docker-compose logs -f
+npm run docker:logs
 
 # Dừng services
-docker-compose down
+npm run docker:down
+
+# Build lại images
+npm run docker:build
 ```
 
-### 5. **Chạy development mode**
+### 5. **Chạy development mode (Local)**
 ```bash
+# Build shared utilities trước
+npm run shared:build
+
 # Chạy tất cả services
 npm run dev
 
@@ -1002,14 +1134,59 @@ npm run dev:notification
 npm run dev:orchestrator
 ```
 
+### 6. **Truy cập services qua domain**
+Sau khi chạy với Docker Compose, bạn có thể truy cập các service qua domain:
+
+```bash
+# Thêm vào file /etc/hosts (Linux/Mac) hoặc C:\Windows\System32\drivers\etc\hosts (Windows)
+127.0.0.1 gateway.localhost
+127.0.0.1 auth.localhost
+127.0.0.1 ai.localhost
+127.0.0.1 media.localhost
+127.0.0.1 user.localhost
+127.0.0.1 notification.localhost
+127.0.0.1 orchestrator.localhost
+
+# Truy cập services
+Gateway: http://gateway.localhost
+Auth: http://auth.localhost
+AI: http://ai.localhost
+Media: http://media.localhost
+User: http://user.localhost
+Notification: http://notification.localhost
+Orchestrator: http://orchestrator.localhost
+
+# Traefik Dashboard
+Traefik: http://localhost:8080
+```
+
+### 7. **Setup hoàn chỉnh**
+```bash
+# Chạy setup hoàn chỉnh (cài đặt dependencies + build Docker)
+npm run setup
+```
+
+### 8. **Shared Utilities Development**
+```bash
+# Build shared utilities
+npm run shared:build
+
+# Test shared utilities
+npm run shared:test
+
+# Watch mode cho shared utilities (development)
+cd shared && npm run dev
+```
+
 ## 📡 API Endpoints
 
 ### GraphQL (Gateway - Port 4000)
 ```
 http://localhost:4000/graphql
+http://gateway.localhost/graphql
 ```
 
-### REST APIs
+### REST APIs - Direct Access
 ```
 Gateway: http://localhost:4000
 Auth: http://localhost:4001
@@ -1020,7 +1197,18 @@ Notification: http://localhost:4005
 Orchestrator: http://localhost:4006
 ```
 
-### Health Checks
+### REST APIs - Domain Routing (via Traefik)
+```
+Gateway: http://gateway.localhost
+Auth: http://auth.localhost
+AI: http://ai.localhost
+Media: http://media.localhost
+User: http://user.localhost
+Notification: http://notification.localhost
+Orchestrator: http://orchestrator.localhost
+```
+
+### Health Checks - Direct Access
 ```
 Gateway: http://localhost:4000/health
 Auth: http://localhost:4001/health
@@ -1029,6 +1217,41 @@ Media: http://localhost:4003/health
 User: http://localhost:4004/health
 Notification: http://localhost:4005/health
 Orchestrator: http://localhost:4006/health
+```
+
+### Health Checks - Domain Routing
+```
+Gateway: http://gateway.localhost/health
+Auth: http://auth.localhost/health
+AI: http://ai.localhost/health
+Media: http://media.localhost/health
+User: http://user.localhost/health
+Notification: http://notification.localhost/health
+Orchestrator: http://orchestrator.localhost/health
+```
+
+### Traefik Dashboard
+```
+http://localhost:8080
+```
+
+### Database Access
+```
+MongoDB Gateway: localhost:27017
+MongoDB Auth: localhost:27018
+MongoDB AI: localhost:27019
+MongoDB Media: localhost:27020
+MongoDB User: localhost:27021
+MongoDB Notification: localhost:27022
+
+Redis Gateway: localhost:6379
+Redis Auth: localhost:6380
+Redis AI: localhost:6381
+Redis Media: localhost:6382
+Redis User: localhost:6383
+Redis Notification: localhost:6384
+
+Qdrant: localhost:6333
 ```
 
 ## 🔐 Authentication & Authorization

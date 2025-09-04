@@ -1,0 +1,36 @@
+{
+  "name": "media-service",
+  "version": "1.0.0",
+  "description": "Media processing service for Microservice Architecture",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "test": "jest"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "compression": "^1.7.4",
+    "morgan": "^1.10.0",
+    "dotenv": "^16.3.1",
+    "winston": "^3.11.0",
+    "express-rate-limit": "^7.1.5",
+    "multer": "^1.4.5-lts.1",
+    "sharp": "^0.32.6",
+    "jimp": "^0.22.10",
+    "ffmpeg-static": "^5.2.0",
+    "pdf-parse": "^1.1.1",
+    "mongoose": "^8.0.0",
+    "redis": "^4.6.10",
+    "socket.io": "^4.7.4",
+    "uuid": "^9.0.1",
+    "mime-types": "^2.1.35",
+    "fs-extra": "^11.1.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "jest": "^29.7.0"
+  }
+}

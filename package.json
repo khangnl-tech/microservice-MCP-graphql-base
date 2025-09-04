@@ -16,7 +16,15 @@
     "start": "node dist/index.js",
     "test": "jest",
     "lint": "eslint src/**/*.js",
-    "lint:fix": "eslint src/**/*.js --fix"
+    "lint:fix": "eslint src/**/*.js --fix",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:build": "docker-compose build",
+    "install:all": "npm install && cd shared && npm install && cd ../services/gateway && npm install && cd ../auth && npm install && cd ../ai && npm install && cd ../media && npm install && cd ../user && npm install && cd ../notification && npm install && cd ../orchestrator && npm install && cd ../..",
+    "setup": "npm run install:all && npm run docker:build",
+    "shared:build": "cd shared && npm run build",
+    "shared:test": "cd shared && npm test"
   },
   "keywords": [
     "microservice",
@@ -74,5 +82,9 @@
     "express-validator": "^7.0.1",
     "compression": "^1.7.4",
     "morgan": "^1.10.0"
-  }
+  },
+  "workspaces": [
+    "shared",
+    "services/*"
+  ]
 }

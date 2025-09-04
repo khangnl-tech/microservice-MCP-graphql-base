@@ -1,31 +1,161 @@
 version: '3.8'
 
 services:
-  # MongoDB
-  mongodb:
+  # MongoDB Instances for each service
+  mongodb_gateway:
     image: mongo:7.0
-    container_name: mongodb
+    container_name: mongodb_gateway
     restart: always
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: password
-      MONGO_INITDB_DATABASE: microservice_db
+      MONGO_INITDB_DATABASE: gateway_db
     ports:
       - "27017:27017"
     volumes:
-      - mongodb_data:/data/db
+      - mongodb_gateway_data:/data/db
     networks:
       - microservice_network
 
-  # Redis
-  redis:
+  mongodb_auth:
+    image: mongo:7.0
+    container_name: mongodb_auth
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: auth_db
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongodb_auth_data:/data/db
+    networks:
+      - microservice_network
+
+  mongodb_ai:
+    image: mongo:7.0
+    container_name: mongodb_ai
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: ai_db
+    ports:
+      - "27019:27017"
+    volumes:
+      - mongodb_ai_data:/data/db
+    networks:
+      - microservice_network
+
+  mongodb_media:
+    image: mongo:7.0
+    container_name: mongodb_media
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: media_db
+    ports:
+      - "27020:27017"
+    volumes:
+      - mongodb_media_data:/data/db
+    networks:
+      - microservice_network
+
+  mongodb_user:
+    image: mongo:7.0
+    container_name: mongodb_user
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: user_db
+    ports:
+      - "27021:27017"
+    volumes:
+      - mongodb_user_data:/data/db
+    networks:
+      - microservice_network
+
+  mongodb_notification:
+    image: mongo:7.0
+    container_name: mongodb_notification
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: notification_db
+    ports:
+      - "27022:27017"
+    volumes:
+      - mongodb_notification_data:/data/db
+    networks:
+      - microservice_network
+
+  # Redis Instances for each service
+  redis_gateway:
     image: redis:7.2-alpine
-    container_name: redis
+    container_name: redis_gateway
     restart: always
     ports:
       - "6379:6379"
     volumes:
-      - redis_data:/data
+      - redis_gateway_data:/data
+    networks:
+      - microservice_network
+
+  redis_auth:
+    image: redis:7.2-alpine
+    container_name: redis_auth
+    restart: always
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_auth_data:/data
+    networks:
+      - microservice_network
+
+  redis_ai:
+    image: redis:7.2-alpine
+    container_name: redis_ai
+    restart: always
+    ports:
+      - "6381:6379"
+    volumes:
+      - redis_ai_data:/data
+    networks:
+      - microservice_network
+
+  redis_media:
+    image: redis:7.2-alpine
+    container_name: redis_media
+    restart: always
+    ports:
+      - "6382:6379"
+    volumes:
+      - redis_media_data:/data
+    networks:
+      - microservice_network
+
+  redis_user:
+    image: redis:7.2-alpine
+    container_name: redis_user
+    restart: always
+    ports:
+      - "6383:6379"
+    volumes:
+      - redis_user_data:/data
+    networks:
+      - microservice_network
+
+  redis_notification:
+    image: redis:7.2-alpine
+    container_name: redis_notification
+    restart: always
+    ports:
+      - "6384:6379"
+    volumes:
+      - redis_notification_data:/data
     networks:
       - microservice_network
 
@@ -54,18 +184,23 @@ services:
     environment:
       NODE_ENV: development
       PORT: 4000
-      MONGODB_URI: mongodb://admin:password@mongodb:27017/microservice_db?authSource=admin
-      REDIS_URL: redis://redis:6379
+      MONGODB_URI: mongodb://admin:password@mongodb_gateway:27017/gateway_db?authSource=admin
+      REDIS_URL: redis://redis_gateway:6379
       AUTH_SERVICE_URL: http://auth:4001
       AI_SERVICE_URL: http://ai:4002
       MEDIA_SERVICE_URL: http://media:4003
       USER_SERVICE_URL: http://user:4004
       NOTIFICATION_SERVICE_URL: http://notification:4005
+      ORCHESTRATOR_SERVICE_URL: http://orchestrator:4006
     depends_on:
-      - mongodb
-      - redis
+      - mongodb_gateway
+      - redis_gateway
     networks:
       - microservice_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gateway.rule=Host(`gateway.localhost`)"
+      - "traefik.http.services.gateway.loadbalancer.server.port=4000"
 
   # Auth Service
   auth:
@@ -79,14 +214,18 @@ services:
     environment:
       NODE_ENV: development
       PORT: 4001
-      MONGODB_URI: mongodb://admin:password@mongodb:27017/microservice_db?authSource=admin
-      REDIS_URL: redis://redis:6379
+      MONGODB_URI: mongodb://admin:password@mongodb_auth:27017/auth_db?authSource=admin
+      REDIS_URL: redis://redis_auth:6379
       JWT_SECRET: your-super-secret-jwt-key
     depends_on:
-      - mongodb
-      - redis
+      - mongodb_auth
+      - redis_auth
     networks:
       - microservice_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.auth.rule=Host(`auth.localhost`)"
+      - "traefik.http.services.auth.loadbalancer.server.port=4001"
 
   # AI Service
   ai:
@@ -100,8 +239,8 @@ services:
     environment:
       NODE_ENV: development
       PORT: 4002
-      MONGODB_URI: mongodb://admin:password@mongodb:27017/microservice_db?authSource=admin
-      REDIS_URL: redis://redis:6379
+      MONGODB_URI: mongodb://admin:password@mongodb_ai:27017/ai_db?authSource=admin
+      REDIS_URL: redis://redis_ai:6379
       QDRANT_URL: http://qdrant:6333
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       GOOGLE_AI_API_KEY: ${GOOGLE_AI_API_KEY}
@@ -110,11 +249,15 @@ services:
       TOGETHER_AI_API_KEY: ${TOGETHER_AI_API_KEY}
       GOOGLE_CLOUD_CREDENTIALS: ${GOOGLE_CLOUD_CREDENTIALS}
     depends_on:
-      - mongodb
-      - redis
+      - mongodb_ai
+      - redis_ai
       - qdrant
     networks:
       - microservice_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ai.rule=Host(`ai.localhost`)"
+      - "traefik.http.services.ai.loadbalancer.server.port=4002"
 
   # Media Service
   media:
@@ -128,13 +271,17 @@ services:
     environment:
       NODE_ENV: development
       PORT: 4003
-      MONGODB_URI: mongodb://admin:password@mongodb:27017/microservice_db?authSource=admin
-      REDIS_URL: redis://redis:6379
+      MONGODB_URI: mongodb://admin:password@mongodb_media:27017/media_db?authSource=admin
+      REDIS_URL: redis://redis_media:6379
     depends_on:
-      - mongodb
-      - redis
+      - mongodb_media
+      - redis_media
     networks:
       - microservice_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.media.rule=Host(`media.localhost`)"
+      - "traefik.http.services.media.loadbalancer.server.port=4003"
 
   # User Service
   user:
@@ -148,13 +295,17 @@ services:
     environment:
       NODE_ENV: development
       PORT: 4004
-      MONGODB_URI: mongodb://admin:password@mongodb:27017/microservice_db?authSource=admin
-      REDIS_URL: redis://redis:6379
+      MONGODB_URI: mongodb://admin:password@mongodb_user:27017/user_db?authSource=admin
+      REDIS_URL: redis://redis_user:6379
     depends_on:
-      - mongodb
-      - redis
+      - mongodb_user
+      - redis_user
     networks:
       - microservice_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.user.rule=Host(`user.localhost`)"
+      - "traefik.http.services.user.loadbalancer.server.port=4004"
 
   # Notification Service
   notification:
@@ -168,17 +319,21 @@ services:
     environment:
       NODE_ENV: development
       PORT: 4005
-      MONGODB_URI: mongodb://admin:password@mongodb:27017/microservice_db?authSource=admin
-      REDIS_URL: redis://redis:6379
+      MONGODB_URI: mongodb://admin:password@mongodb_notification:27017/notification_db?authSource=admin
+      REDIS_URL: redis://redis_notification:6379
       SMTP_HOST: ${SMTP_HOST}
       SMTP_PORT: ${SMTP_PORT}
       SMTP_USER: ${SMTP_USER}
       SMTP_PASS: ${SMTP_PASS}
     depends_on:
-      - mongodb
-      - redis
+      - mongodb_notification
+      - redis_notification
     networks:
       - microservice_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.notification.rule=Host(`notification.localhost`)"
+      - "traefik.http.services.notification.loadbalancer.server.port=4005"
 
   # Service Orchestrator
   orchestrator:
@@ -192,7 +347,7 @@ services:
     environment:
       NODE_ENV: development
       PORT: 4006
-      REDIS_URL: redis://redis:6379
+      REDIS_URL: redis://redis_gateway:6379
       GATEWAY_SERVICE_URL: http://gateway:4000
       AUTH_SERVICE_URL: http://auth:4001
       AI_SERVICE_URL: http://ai:4002
@@ -200,13 +355,45 @@ services:
       USER_SERVICE_URL: http://user:4004
       NOTIFICATION_SERVICE_URL: http://notification:4005
     depends_on:
-      - redis
+      - redis_gateway
     networks:
       - microservice_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.orchestrator.rule=Host(`orchestrator.localhost`)"
+      - "traefik.http.services.orchestrator.loadbalancer.server.port=4006"
+
+  # Traefik Reverse Proxy
+  traefik:
+    image: traefik:v2.10
+    container_name: traefik
+    restart: always
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+    networks:
+      - microservice_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.localhost`)"
+      - "traefik.http.services.traefik.loadbalancer.server.port=8080"
 
 volumes:
-  mongodb_data:
-  redis_data:
+  mongodb_gateway_data:
+  mongodb_auth_data:
+  mongodb_ai_data:
+  mongodb_media_data:
+  mongodb_user_data:
+  mongodb_notification_data:
+  redis_gateway_data:
+  redis_auth_data:
+  redis_ai_data:
+  redis_media_data:
+  redis_user_data:
+  redis_notification_data:
   qdrant_data:
 
 networks:
