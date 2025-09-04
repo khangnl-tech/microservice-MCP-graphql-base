@@ -1,0 +1,38 @@
+{
+  "name": "node-graphql-microservices",
+  "private": true,
+  "workspaces": ["apps/*", "libs/*"],
+  "scripts": {
+    "dev:gw": "npm run dev -w apps/gateway",
+    "dev:ai": "npm run dev -w apps/ai-service",
+    "dev:media": "npm run dev -w apps/media-service",
+    "dev:auth": "npm run dev -w apps/auth-service",
+    "dev:data": "npm run dev -w apps/data-service",
+    "dev:all": "concurrently -n gw,ai,media,auth,data \"npm:dev:gw\" \"npm:dev:ai\" \"npm:dev:media\" \"npm:dev:auth\" \"npm:dev:data\"",
+    "build": "tsc -b"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "ts-node-dev": "^2.0.0",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.6.2",
+    "@types/express": "^4.17.21",
+    "@types/cors": "^2.8.17",
+    "@types/jsonwebtoken": "^9.0.6",
+    "@types/bcryptjs": "^2.4.6"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "@apollo/server": "^4.11.2",
+    "graphql": "^16.9.0",
+    "body-parser": "^1.20.3",
+    "mongoose": "^8.6.1",
+    "redis": "^4.6.14",
+    "socket.io": "^4.7.5",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "zod": "^3.23.8"
+  }
+}

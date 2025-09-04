@@ -1,0 +1,5 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": { "outDir": "../../dist/apps/auth-service", "rootDir": "./src" },
+  "include": ["src/**/*"]
+}
