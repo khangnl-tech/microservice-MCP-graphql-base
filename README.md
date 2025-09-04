@@ -12,7 +12,7 @@ Dự án này được xây dựng theo mô hình microservices, kết hợp Gra
 2. **Các Microservices**  
    - **AI**  
      - Chạy GraphQL server nội bộ (trong ví dụ: query “aiHello”), sẵn sàng mở rộng sang các API AI.  
-     - Mục tiêu: Tích hợp AI model (OpenAI, Google AI, HuggingFace...), expose các hàm inference.  
+     - Tích hợp AI model (OpenAI, Google AI, HuggingFace...), expose các hàm inference.  
    - **Media**  
      - Xử lý PDF, ảnh, video (pdf-parse, sharp, jimp, fluent-ffmpeg), hiện đang chạy REST.  
      - Hoàn toàn có thể thêm Apollo Server để cung cấp GraphQL interface nếu cần.  
@@ -25,7 +25,7 @@ Dự án này được xây dựng theo mô hình microservices, kết hợp Gra
 
 3. **MCP (Model Context Protocol)**  
    - Trong dự án này, MCP cho phép đăng ký service (microservice AI, Auth, v.v.) như một “MCP server”.  
-   - Khi cần gọi logic, thay vì gọi REST, ta có thể dùng `use_mcp_tool` (hoặc `access_mcp_resource`) từ Gateway/microservice khác đến AI microservice.  
+   - Khi cần gọi logic, thay vì gọi REST, có thể dùng `use_mcp_tool` (hoặc `access_mcp_resource`) từ Gateway/microservice khác đến AI microservice.  
    - MCP giảm coupling, cho phép code “call tool” thay vì import library hoặc cứng code.  
 
 4. **Cách thức hoạt động với GraphQL**  
@@ -90,7 +90,7 @@ Dự án này được xây dựng theo mô hình microservices, kết hợp Gra
 7. **Kiến trúc MCP**  
    - Cấu trúc code có thể bổ sung 1 “server MCP” trong AI, cho phép `tool` như “callOpenAI”, “analyzeImage”…  
    - Gateway/microservice khác gọi `use_mcp_tool` => AI microservice thực thi.  
-   - Mục tiêu: thay vì `import openai from 'openai'` ở mọi chỗ, gateway gọi MCP – “openaiTool” do AI microservice cung cấp.  
+   - Thay vì `import openai from 'openai'` ở mọi chỗ, gateway gọi MCP – “openaiTool” do AI microservice cung cấp.
    - Giảm việc cài SDK, lock version, tách logic AI ra một chỗ.  
 
 8. **Triển khai Production**  
@@ -99,4 +99,4 @@ Dự án này được xây dựng theo mô hình microservices, kết hợp Gra
    - Áp dụng AAA (Authentication, Authorization, Auditing).  
 
 ## Kết luận
-- Mỗi microservice có thể phát triển độc lập, ngôn ngữ tùy chọn, miễn đáp ứng giao thức giao tiếp (REST, GraphQL, hoặc MCP).  
+- Mỗi microservice có thể phát triển độc lập, ngôn ngữ tùy chọn, miễn đáp ứng giao thức giao tiếp (REST, GraphQL, hoặc MCP).
